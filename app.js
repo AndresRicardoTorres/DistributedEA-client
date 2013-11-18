@@ -4,14 +4,12 @@ var variables = require('./variables');
 var clientDAO = require('./dao/clientDAO');
 
 var client = new clientDAO();
-var estado_global = variables.estados.LIBRE;
 
 var url = "http://agmp_servidor_-c9-andresricardotorres.c9.io";
-var accion = "/asignar_trabajo";
 
 var options = {
     "method": "POST",
-    "url": url + accion
+    "url": url + variables.rutas.ASIGNAR
 };
 
 var contador = 1;
@@ -31,6 +29,8 @@ while (contador > 0) {
                 var tiempo_inicio = new Date();
                 var resultado = client.ejecutarCreacion(obj_response.funcion_creacion, obj_response.cantidad_poblacion);
                 var tiempo_final = new Date();
+                
+                request({'method':'POST',url: url + variables.rutas.ENTREGAR,form:{id_trabajo:obj_response.id_trabajo,resultado:resultado}});
 
                 console.log('---INICIO CREACION---');
                 console.log('cantidad : ' + resultado.length);

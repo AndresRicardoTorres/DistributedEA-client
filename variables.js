@@ -1,10 +1,11 @@
-exports.estados = {
-	LIBRE : 1
-};
-
 exports.tipo_trabajo = {
     CREACION:1
 };
+
+exports.rutas = {
+    ASIGNAR :'/asignar_trabajo',
+    ENTREGAR :'/entregar_trabajo' 
+}
 
 exports.pruebas = {
 	funcion_creacion : function() {
