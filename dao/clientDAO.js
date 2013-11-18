@@ -10,6 +10,10 @@ function clientDAO() {
 
 	this.ejecutarCreacion = function(function_creacion, cantidad_creacion) {
 		var resultados = Array();
+		
+		if ( typeof function_creacion === 'string'){
+		    eval("function_creacion="+function_creacion);
+		}
 
 		if ( typeof function_creacion != 'function')
 			return resultados;
