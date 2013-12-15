@@ -1,6 +1,6 @@
 {
   "name": "AGMP_cliente",
-  "version": "0.0.0",
+  "version": "0.2.0",
   "description": "Cliente de algoritmos geneticos multi problemas",
   "main": "app.js",
   "dependencies": {
