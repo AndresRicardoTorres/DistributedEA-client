@@ -4,75 +4,94 @@ var request = require("request");
 
 Client = function(){
   
-  this.project = null;
-  this.estimatedTime = null;
-  this.finished = false;
-  this.population = null;
+  var project = null;
+  var estimatedTime = null;
+  var finished = false;
+  var population = null;
+  var realTime = null;
+  var objThis=this;
+  var fitness=[];
   
-  this.requestRandomInteger = function(max){
+  function requestRandomInteger(max){
     return Math.floor(Math.random()*max);
   }
   
   ///returns aJob
   this.requestJob = function(){ 
     var requestOptions = {
-      url: "http://localhost/",
+      url: "http://192.168.1.5:8000/",
       form: {action:'request',
-	     assignedProject : this.project != null
+	     assignedProject : project != null
       }      
     };
     
     request.post(requestOptions,function(error, response, body){
       if (!error && response.statusCode == 200) {
+	console.log(response.statusCode);
 	var objResponse = JSON.parse(body);
 	
 	if(typeof objResponse.finalized === 'undefined'){
-	  if(this.project === null){
-	    this.project = objResponse.assignedProject;
+	  if(project === null){
+	    project = objResponse.assignedProject;
+	    eval('project.fitnessFunction = '+project.fitnessFunctionString);
+	    eval('project.crossoverFunction = '+project.crossoverFunctionString);
+	    eval('project.mutationFunction = '+project.mutationFunctionString);
 	  }
-	  this.estimatedTime = objResponse.estimatedTime;
-	  this.population = objResponse.subPopulation;
-	  this.generation = objResponse.generation + 1;
-	  this.processJob();
-	  this.deliverJob();
-	  this.requestJob();
+	  estimatedTime = objResponse.estimatedTime;
+	  population = objResponse.subPopulation;
+	  generation = objResponse.generation + 1;
+	  processJob();
+	  deliverJob();
+	  console.log(generation);
+	  
+// 	  console.log(project.fitnessFunctionString);
+// 	  console.log(population[0]);
+// 	  console.log(project.fitnessFunction(population[0]));
 	}
 	else{
-	  this.finalized = true;
+	  finalized = true;
 	}	 
       }
     });    
   };
   
-  this.processJob = function(){
-    this.realTime=new Date();
-    var populationSize=this.population.length
-    var mattingPoolSize=populationSize*this.project.mattingPoolPercent;
-    var amountMutation=populationSize*this.project.mutationPercent;
+  function processJob(){
+    realTime=new Date();
+    fitness=[];
+    var populationSize=population.length
+    var mattingPoolSize=populationSize*project.mattingPoolPercent;
+    var amountMutation=populationSize*project.mutationPercent;
+    
+    console.log(amountMutation,'mutados');
+    
+    console.log(populationSize, 'llegan')
     
     //Selection
-    var selection = this.select(populationSize,mattingPoolSize);
+    var selection = select(populationSize,mattingPoolSize);
+    console.log(selection.length,'selectionSize');
     //Crossover
-    selection = this.crossMattingPool(selection,populationSize,mattingPoolSize);
+    selection = crossMattingPool(selection,populationSize,mattingPoolSize);
     //The new chromosomes replaces all the old population
-    this.population=selection
+    population=selection
     //Mutation
-    this.mutatePopulation(amountMutation, populationSize);
-    this.realTime=new Date() - this.realTime
+    mutatePopulation(amountMutation, populationSize);
+    realTime=new Date() - realTime
+    
+    console.log(population.length, 'salen')
   };
   
-  this.select = function(populationSize,mattingPoolSize){
+  function select(populationSize,mattingPoolSize){
     selection=new Array();
     
     for(var i=0; i<mattingPoolSize; i++){
-      var idx1=this.requestRandomInteger(populationSize);
-      var idx2=this.requestRandomInteger(populationSize);
+      var idx1=requestRandomInteger(populationSize);
+      var idx2=requestRandomInteger(populationSize);
       
-      if(this.calculateFitness(idx1) > this.calculateFitness(idx2)){
-	selection.push(this.population[idx1]);
+      if(calculateFitness(idx1) > calculateFitness(idx2)){
+	selection.push(population[idx1]);
       }
       else{
-	selection.push(this.population[idx2])
+	selection.push(population[idx2])
       }
     }
     return selection;
@@ -80,43 +99,53 @@ Client = function(){
   
   //////////////////Chromosomes must have fitness key once calculated
   //////////////////fitnessFunction must be executable and have the same parameters
-  this.calculateFitness = function(idx){
-    if (typeof this.population[idx].fitness != 'undefined'){
-      this.population[idx].fitness=this.project.fitnessFunction(population[idx]);
+  function calculateFitness(idx){
+    if (typeof fitness[idx] === 'undefined' || fitness[idx] === null){
+      fitness[idx]=project.fitnessFunction(population[idx]);
     }
-    return this.population[idx].fitness;
+    return fitness[idx];
   };
   
   //////////////////crossoverFunction must be executable and have the same parameters
-  this.crossMattingPool = function(selection,populationSize,mattingPoolSize){
+  function crossMattingPool(selection,populationSize,mattingPoolSize){
     for(var i = mattingPoolSize; i < populationSize; i++){
-      var idx1=this.requestRandomInteger(mattingPoolSize);
-      var idx2=this.requestRandomInteger(mattingPoolSize);
+      var idx1=requestRandomInteger(mattingPoolSize);
+      var idx2=requestRandomInteger(mattingPoolSize);
       
-      newChromosome = this.project.crossoverFunction(selection[idx1],selection[idx2]);
+      newChromosome = project.crossoverFunction(selection[idx1],selection[idx2]);
       selection.push(newChromosome);
     }
     return selection;
   };
   
-  this.mutatePopulation = function(amountMutation, populationSize){
+  function mutatePopulation(amountMutation, populationSize){
     for(var i = 0; i < amountMutation; i++){
-      var idx=this.requestRandomInteger(populationSize);
-      this.population[idx]= this.project.mutationFunction(this.population[idx]);
+      var idx=requestRandomInteger(populationSize);
+      population[idx]= project.mutationFunction(population[idx]);
     }
   };
   
-  this.deliverJob = function(){
+  function deliverJob(){
+    if(generation > project.generationLimit){
+      fitness=[];
+      for(var i = 0 ; i < population.length ; i++){
+	fitness[i]=calculateFitness(i);
+      }
+    }
+    
     var requestOptions = {
-      url: "http://localhost/",
+      url: "http://192.168.1.5:8000/",
       form: {action : 'deliver',
-	     generation : this.generation,
-	     newChromosomes : this.population,
-	     estimatedTime : this.estimatedTime,
-	     realTime : this.realTime
+	     generation : generation,
+	     newChromosomes : population,
+	     estimatedTime : estimatedTime,
+	     realTime : realTime,
+	     fitness : fitness
       }      
     };
-    request.post(requestOptions);
+    request.post(requestOptions, function(error, response, body){
+	  objThis.requestJob();
+    });
   };
 }
 
