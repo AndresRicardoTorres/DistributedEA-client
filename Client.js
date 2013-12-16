@@ -19,7 +19,7 @@ Client = function(){
   ///returns aJob
   this.requestJob = function(){ 
     var requestOptions = {
-      url: "http://192.168.1.5:8000/",
+      url: "http://eva05.local:8000/",
       form: {action:'request',
 	     assignedProject : project != null
       }      
@@ -134,7 +134,7 @@ Client = function(){
     }
     
     var requestOptions = {
-      url: "http://192.168.1.5:8000/",
+      url: "http://eva05.local:8000/",
       form: {action : 'deliver',
 	     generation : generation,
 	     newChromosomes : population,
