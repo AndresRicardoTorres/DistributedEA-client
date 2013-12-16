@@ -2,7 +2,7 @@ var request = require("request");
 
 //var variables = require("./variables");
 
-function Client(){
+Client = function(){
   
   this.project = null;
   this.estimatedTime = null;
@@ -14,7 +14,7 @@ function Client(){
   }
   
   ///returns aJob
-  this.requestJob() = function(){ 
+  this.requestJob = function(){ 
     var requestOptions = {
       url: "http://localhost/",
       form: {action:'request',
@@ -33,25 +33,15 @@ function Client(){
 	  this.estimatedTime = objResponse.estimatedTime;
 	  this.population = objResponse.subPopulation;
 	  this.generation = objResponse.generation + 1;
+	  this.processJob();
+	  this.deliverJob();
+	  this.requestJob();
 	}
 	else{
 	  this.finalized = true;
 	}	 
       }
     });    
-  };
-  
-  this.deliverJob = function(){
-    var requestOptions = {
-      url: "http://localhost/",
-      form: {action : 'deliver',
-	     generation : this.generation,
-	     newChromosomes : this.population,
-	     estimatedTime : this.estimatedTime,
-	     realTime : this.realTime
-      }      
-    };
-    request.post(requestOptions);
   };
   
   this.processJob = function(){
@@ -115,5 +105,20 @@ function Client(){
       this.population[idx]= this.project.mutationFunction(this.population[idx]);
     }
   };
+  
+  this.deliverJob = function(){
+    var requestOptions = {
+      url: "http://localhost/",
+      form: {action : 'deliver',
+	     generation : this.generation,
+	     newChromosomes : this.population,
+	     estimatedTime : this.estimatedTime,
+	     realTime : this.realTime
+      }      
+    };
+    request.post(requestOptions);
+  };
 }
+
+module.exports=Client;
 
