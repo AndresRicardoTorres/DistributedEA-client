@@ -18,6 +18,7 @@ Client = function(){
   
   ///returns aJob
   this.requestJob = function(){ 
+    console.log("requestJob");
     var requestOptions = {
       url: "http://eva05.local:8000/",
       form: {action:'request',
@@ -26,8 +27,10 @@ Client = function(){
     };
     
     request.post(requestOptions,function(error, response, body){
+      if(error)console.log("ERROR! "+error);
+      console.log(response.statusCode);
       if (!error && response.statusCode == 200) {
-	console.log(response.statusCode);
+	
 	var objResponse = JSON.parse(body);
 	
 	if(typeof objResponse.finalized === 'undefined'){
@@ -137,7 +140,7 @@ Client = function(){
       url: "http://eva05.local:8000/",
       form: {action : 'deliver',
 	     generation : generation,
-	     newChromosomes : population,
+	     newChromosomes : JSON.stringify(population),
 	     estimatedTime : estimatedTime,
 	     realTime : realTime,
 	     fitness : fitness
