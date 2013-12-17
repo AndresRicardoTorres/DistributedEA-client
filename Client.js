@@ -1,6 +1,5 @@
 var request = require("request");
-
-//var variables = require("./variables");
+var configuration = require("./configuration.js");
 
 Client = function(){
   
@@ -20,40 +19,43 @@ Client = function(){
   this.requestJob = function(){ 
     console.log("requestJob");
     var requestOptions = {
-      url: "http://eva05.local:8000/",
+      url: configuration.urlServer,
       form: {action:'request',
 	     assignedProject : project != null
       }      
     };
     
     request.post(requestOptions,function(error, response, body){
-      if(error)console.log("ERROR! "+error);
-      console.log(response.statusCode);
-      if (!error && response.statusCode == 200) {
-	
-	var objResponse = JSON.parse(body);
-	
-	if(typeof objResponse.finalized === 'undefined'){
-	  if(project === null){
-	    project = objResponse.assignedProject;
-	    eval('project.fitnessFunction = '+project.fitnessFunctionString);
-	    eval('project.crossoverFunction = '+project.crossoverFunctionString);
-	    eval('project.mutationFunction = '+project.mutationFunctionString);
-	  }
-	  estimatedTime = objResponse.estimatedTime;
-	  population = objResponse.subPopulation;
-	  generation = objResponse.generation + 1;
-	  processJob();
-	  deliverJob();
-	  console.log(generation);
+      if(error){
+	console.log("ERROR! "+error);	
+      }else{      
+	console.log(response.statusCode);
+	if (!error && response.statusCode == 200) {
 	  
-// 	  console.log(project.fitnessFunctionString);
-// 	  console.log(population[0]);
-// 	  console.log(project.fitnessFunction(population[0]));
+	  var objResponse = JSON.parse(body);
+	  
+	  if(typeof objResponse.finalized === 'undefined'){
+	    if(project === null){
+	      project = objResponse.assignedProject;
+	      eval('project.fitnessFunction = '+project.fitnessFunctionString);
+	      eval('project.crossoverFunction = '+project.crossoverFunctionString);
+	      eval('project.mutationFunction = '+project.mutationFunctionString);
+	    }
+	    estimatedTime = objResponse.estimatedTime;
+	    population = objResponse.subPopulation;
+	    generation = objResponse.generation + 1;
+	    processJob();
+	    deliverJob();
+	    console.log(generation);
+	    
+  // 	  console.log(project.fitnessFunctionString);
+  // 	  console.log(population[0]);
+  // 	  console.log(project.fitnessFunction(population[0]));
+	  }
+	  else{
+	    finalized = true;
+	  }	 
 	}
-	else{
-	  finalized = true;
-	}	 
       }
     });    
   };
@@ -137,7 +139,7 @@ Client = function(){
     }
     
     var requestOptions = {
-      url: "http://eva05.local:8000/",
+      url: configuration.urlServer,
       form: {action : 'deliver',
 	     generation : generation,
 	     newChromosomes : JSON.stringify(population),
