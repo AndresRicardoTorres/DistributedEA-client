@@ -62,7 +62,7 @@ Client = function(){
   
   function processJob(){
     realTime=new Date();
-    fitness=[];
+    fitness=[]
     var populationSize=population.length
     var mattingPoolSize=populationSize*project.mattingPoolPercent;
     var amountMutation=populationSize*project.mutationPercent;
@@ -132,10 +132,13 @@ Client = function(){
   
   function deliverJob(){
     if(generation > project.generationLimit){
-      fitness=[];
+      fitness=[]
       for(var i = 0 ; i < population.length ; i++){
 	fitness[i]=calculateFitness(i);
       }
+    }
+    for(var i = 0 ; i < population.length ; i++){
+	console.log(i,population[i],' => ',fitness[i]);
     }
     
     var requestOptions = {
@@ -145,7 +148,7 @@ Client = function(){
 	     newChromosomes : JSON.stringify(population),
 	     estimatedTime : estimatedTime,
 	     realTime : realTime,
-	     fitness : fitness
+	     fitness : JSON.stringify(fitness)
       }      
     };
     request.post(requestOptions, function(error, response, body){
