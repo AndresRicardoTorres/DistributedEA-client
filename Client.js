@@ -105,9 +105,10 @@ Client = function(){
   //////////////////Chromosomes must have fitness key once calculated
   //////////////////fitnessFunction must be executable and have the same parameters
   function calculateFitness(idx){
-    if (typeof fitness[idx] === 'undefined' || fitness[idx] === null){
+    return project.fitnessFunction(population[idx]);
+//     if (typeof fitness[idx] === 'undefined' || fitness[idx] === null){
       fitness[idx]=project.fitnessFunction(population[idx]);
-    }
+//     }
     return fitness[idx];
   };
   
@@ -131,14 +132,17 @@ Client = function(){
   };
   
   function deliverJob(){
-    if(generation > project.generationLimit){
-      fitness=[]
+    var lastFitness = [];
+    fitness=[];
+//     if(generation > project.generationLimit){      
+    if(true){
       for(var i = 0 ; i < population.length ; i++){
-	fitness[i]=calculateFitness(i);
-      }
+	lastFitness[i]=calculateFitness(i);
+      }      
     }
+    
     for(var i = 0 ; i < population.length ; i++){
-	console.log(i,population[i],' => ',fitness[i]);
+      console.log(i+1,' ',population[i],' ',lastFitness[i]);
     }
     
     var requestOptions = {
@@ -148,9 +152,11 @@ Client = function(){
 	     newChromosomes : JSON.stringify(population),
 	     estimatedTime : estimatedTime,
 	     realTime : realTime,
-	     fitness : JSON.stringify(fitness)
+	     fitness : JSON.stringify(fitness),
+	     lastFitness: JSON.stringify(lastFitness),
       }      
     };
+    
     request.post(requestOptions, function(error, response, body){
 	  objThis.requestJob();
     });
