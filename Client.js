@@ -10,6 +10,7 @@ Client = function(){
   var realTime = null;
   var objThis=this;
   var fitness=[];
+  var oldIds=[];
   
   function requestRandomInteger(max){
     return Math.floor(Math.random()*max);
@@ -44,6 +45,7 @@ Client = function(){
 	    estimatedTime = objResponse.estimatedTime;
 	    population = objResponse.subPopulation;
 	    generation = objResponse.generation + 1;
+	    oldIds = objResponse.oldIds;
 	    processJob();
 	    deliverJob();
 	    console.log(generation);
@@ -106,9 +108,10 @@ Client = function(){
   //////////////////fitnessFunction must be executable and have the same parameters
   function calculateFitness(idx){
     return project.fitnessFunction(population[idx]);
-//     if (typeof fitness[idx] === 'undefined' || fitness[idx] === null){
+    ///TODO: activate cache for fitness calculation
+     if (typeof fitness[idx] === 'undefined' || fitness[idx] === null){
       fitness[idx]=project.fitnessFunction(population[idx]);
-//     }
+     }
     return fitness[idx];
   };
   
@@ -132,19 +135,7 @@ Client = function(){
   };
   
   function deliverJob(){
-    var lastFitness = [];
-    fitness=[];
-//     if(generation > project.generationLimit){      
-    if(true){
-      for(var i = 0 ; i < population.length ; i++){
-	lastFitness[i]=calculateFitness(i);
-      }      
-    }
-    
-    for(var i = 0 ; i < population.length ; i++){
-      console.log(i+1,' ',population[i],' ',lastFitness[i]);
-    }
-    
+        
     var requestOptions = {
       url: configuration.urlServer,
       form: {action : 'deliver',
@@ -153,7 +144,7 @@ Client = function(){
 	     estimatedTime : estimatedTime,
 	     realTime : realTime,
 	     fitness : JSON.stringify(fitness),
-	     lastFitness: JSON.stringify(lastFitness),
+	     oldIds : JSON.stringify(oldIds)
       }      
     };
     
