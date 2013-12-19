@@ -83,7 +83,7 @@ Client = function(){
     //Mutation
     mutatePopulation(amountMutation, populationSize);
     realTime=new Date() - realTime
-    
+    console.log("duration : "+realTime);
     console.log(population.length, 'salen')
   };
   
