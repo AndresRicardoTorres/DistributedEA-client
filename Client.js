@@ -39,12 +39,17 @@ Client = function(){
 	      eval('project.crossoverFunction = '+project.crossoverFunctionString);
 	      eval('project.mutationFunction = '+project.mutationFunctionString);
 	    }
-	    estimatedTime = objResponse.estimatedTime;
-	    population = objResponse.subPopulation;
-	    generation = objResponse.generation + 1;
-	    oldIds = objResponse.oldIds;
-	    processJob();
-	    deliverJob();
+	    if(typeof objResponse.sleep === 'undefined'){
+	      estimatedTime = objResponse.estimatedTime;
+	      population = objResponse.subPopulation;
+	      generation = objResponse.generation + 1;
+	      oldIds = objResponse.oldIds;
+	      processJob();
+	      deliverJob();
+	    }
+	    else{
+	      setTimeout(requestJob,project.sleepTime);
+	    }
 	  }
 	}
       }
