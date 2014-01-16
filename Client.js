@@ -5,7 +5,6 @@ Client = function(){
   
   var project = null;
   var estimatedTime = null;
-  var finished = false;
   var population = null;
   var realTime = null;
   var objThis=this;
@@ -17,8 +16,7 @@ Client = function(){
   }
   
   ///returns aJob
-  this.requestJob = function(){ 
-    console.log("requestJob");
+  this.requestJob = function(){
     var requestOptions = {
       url: configuration.urlServer,
       form: {action:'request',
@@ -29,8 +27,7 @@ Client = function(){
     request.post(requestOptions,function(error, response, body){
       if(error){
 	console.log("ERROR! "+error);	
-      }else{      
-	console.log(response.statusCode);
+      }else{
 	if (!error && response.statusCode == 200) {
 	  
 	  var objResponse = JSON.parse(body);
@@ -48,15 +45,7 @@ Client = function(){
 	    oldIds = objResponse.oldIds;
 	    processJob();
 	    deliverJob();
-	    console.log(generation);
-	    
-  // 	  console.log(project.fitnessFunctionString);
-  // 	  console.log(population[0]);
-  // 	  console.log(project.fitnessFunction(population[0]));
 	  }
-	  else{
-	    finalized = true;
-	  }	 
 	}
       }
     });    
@@ -66,33 +55,27 @@ Client = function(){
     realTime=new Date();
     fitness=[]
     var populationSize=population.length
-    var mattingPoolSize=populationSize*project.mattingPoolPercent;
     var amountMutation=populationSize*project.mutationPercent;
     
-    console.log(amountMutation,'mutados');
-    
-    console.log(populationSize, 'llegan')
-    
     //Selection
-    var selection = select(populationSize,mattingPoolSize);
-    console.log(selection.length,'selectionSize');
+    var selection = select(populationSize);
+
     //Crossover
-    selection = crossMattingPool(selection,populationSize,mattingPoolSize);
+    selection = crossMattingPool(selection,populationSize);
     //The new chromosomes replaces all the old population
     population=selection
+    
     //Mutation
     mutatePopulation(amountMutation, populationSize);
-    realTime=new Date() - realTime
-    console.log("duration : "+realTime);
-    console.log(population.length, 'salen')
+    realTime=new Date() - realTime;
   };
   
-  function select(populationSize,mattingPoolSize){
+  function select(populationSize){
     selection=new Array();
     
-    for(var i=0; i<mattingPoolSize; i++){
-      var idx1=requestRandomInteger(populationSize);
-      var idx2=requestRandomInteger(populationSize);
+    for(var i=0; i<populationSize; i+=2){
+      var idx1=i;
+      var idx2=i+1;
       
       if(calculateFitness(idx1) > calculateFitness(idx2)){
 	selection.push(population[idx1]);
@@ -104,22 +87,16 @@ Client = function(){
     return selection;
   };
   
-  //////////////////Chromosomes must have fitness key once calculated
-  //////////////////fitnessFunction must be executable and have the same parameters
+  //A greater value is a greater fitness
   function calculateFitness(idx){
-    return project.fitnessFunction(population[idx]);
-    ///TODO: activate cache for fitness calculation
-     if (typeof fitness[idx] === 'undefined' || fitness[idx] === null){
-      fitness[idx]=project.fitnessFunction(population[idx]);
-     }
+    fitness[idx]= project.fitnessFunction(population[idx]);
     return fitness[idx];
   };
   
-  //////////////////crossoverFunction must be executable and have the same parameters
-  function crossMattingPool(selection,populationSize,mattingPoolSize){
-    for(var i = mattingPoolSize; i < populationSize; i++){
-      var idx1=requestRandomInteger(mattingPoolSize);
-      var idx2=requestRandomInteger(mattingPoolSize);
+  function crossMattingPool(selection,populationSize){
+    for(var i = selection.length; i < populationSize; i++){
+      var idx1=requestRandomInteger(selection.length);
+      var idx2=requestRandomInteger(selection.length);
       
       newChromosome = project.crossoverFunction(selection[idx1],selection[idx2]);
       selection.push(newChromosome);
