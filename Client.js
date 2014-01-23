@@ -10,6 +10,13 @@ Client = function(){
   var objThis=this;
   var fitness=[];
   var oldIds=[];
+  var comunicationTimeDeliver=0;
+  var comunicationTimeRequest=0;
+  var workTime=0;
+  var sleepTime=0;
+  //The work time is taken in two different functions.
+  var workTimeIni=0;
+  var workTimeEnd=0;
   
   function requestRandomInteger(max){
     return Math.floor(Math.random()*max);
@@ -19,42 +26,56 @@ Client = function(){
   this.requestJob = function(){
     var requestOptions = {
       url: configuration.urlServer,
-      form: {action:'request',
-	     assignedProject : project != null
+      form: {
+        action:'request',
+        assignedProject : project != null
       }      
     };
     
+    var comunicationTimeIni=new Date();
     request.post(requestOptions,function(error, response, body){
+      var comunicationTimeEnd=new Date();
+      comunicationTimeRequest+=comunicationTimeEnd-comunicationTimeIni;
+      workTimeIni=new Date();
+      
       if(error){
-	console.log("ERROR! "+error);	
+	       console.log("ERROR! "+error);	
       }else{
-	if (!error && response.statusCode == 200) {
-	  
-	  var objResponse = JSON.parse(body);
-	  
-	  if(typeof objResponse.finalized === 'undefined'){
-	    if(project === null){
-	      project = objResponse.assignedProject;
-	      eval('project.fitnessFunction = '+project.fitnessFunctionString);
-	      eval('project.crossoverFunction = '+project.crossoverFunctionString);
-	      eval('project.mutationFunction = '+project.mutationFunctionString);
-	    }
-	    if(typeof objResponse.sleep === 'undefined'){
-	      estimatedTime = objResponse.estimatedTime;
-	      population = objResponse.subPopulation;
-	      generation = objResponse.generation + 1;
-	      oldIds = objResponse.oldIds;
-	      processJob();
-	      deliverJob();
-	    }
-	    else{
-	      setTimeout(requestJob,project.sleepTime);
-	    }
-	  }
-	}
+          var objResponse = JSON.parse(body);
+
+          if(typeof objResponse.finalized === 'undefined'){
+            if(project === null){
+              project = objResponse.assignedProject;
+              eval('project.fitnessFunction = '+project.fitnessFunctionString);
+              eval('project.crossoverFunction = '+project.crossoverFunctionString);
+              eval('project.mutationFunction = '+project.mutationFunctionString);
+            }
+            if(typeof objResponse.sleep === 'undefined'){
+              estimatedTime = objResponse.estimatedTime;
+              population = objResponse.subPopulation;
+              generation = objResponse.generation + 1;
+              oldIds = objResponse.oldIds;
+              processJob();
+              deliverJob();
+            }
+            else{
+              sleepTime+=project.sleepTime;
+              setTimeout(requestJob,project.sleepTime);
+            }
+          }
+          else{
+            printReport();
+          }
       }
     });    
   };
+
+  function printReport(){
+    console.log("workTime: ",workTime/1000);
+    console.log("waiting for a job: ",comunicationTimeRequest/1000);
+    console.log("waiting for deliver a job: ",comunicationTimeDeliver/1000);
+    console.log("sleepTime: ",sleepTime/1000);
+  }
   
   function processJob(){
     realTime=new Date();
@@ -83,10 +104,10 @@ Client = function(){
       var idx2=i+1;
       
       if(calculateFitness(idx1) > calculateFitness(idx2)){
-	selection.push(population[idx1]);
+        selection.push(population[idx1]);
       }
       else{
-	selection.push(population[idx2])
+        selection.push(population[idx2])
       }
     }
     return selection;
@@ -120,21 +141,28 @@ Client = function(){
         
     var requestOptions = {
       url: configuration.urlServer,
-      form: {action : 'deliver',
-	     generation : generation,
-	     newChromosomes : JSON.stringify(population),
-	     estimatedTime : estimatedTime,
-	     realTime : realTime,
-	     fitness : JSON.stringify(fitness),
-	     oldIds : JSON.stringify(oldIds)
+      form: {
+        action : 'deliver',
+        generation : generation,
+        newChromosomes : JSON.stringify(population),
+        estimatedTime : estimatedTime,
+        realTime : realTime,
+        fitness : JSON.stringify(fitness),
+        oldIds : JSON.stringify(oldIds)
       }      
     };
     
+    workTimeEnd=new Date();
+    workTime+=workTimeEnd-workTimeIni;
+    
+    var comunicationTimeIni=new Date();
     request.post(requestOptions, function(error, response, body){
-	  objThis.requestJob();
+      var comunicationTimeEnd=new Date();
+      comunicationTimeDeliver+=comunicationTimeEnd-comunicationTimeIni;
+      
+      objThis.requestJob();
     });
   };
 }
 
 module.exports=Client;
-
