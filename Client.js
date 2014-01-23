@@ -10,6 +10,13 @@ Client = function(){
   var objThis=this;
   var fitness=[];
   var oldIds=[];
+  var comunicationTimeDeliver=0;
+  var comunicationTimeRequest=0;
+  var workTime=0;
+  var sleepTime=0;
+  //The work time is taken in two different functions.
+  var workTimeIni=0;
+  var workTimeEnd=0;
   
   function requestRandomInteger(max){
     return Math.floor(Math.random()*max);
@@ -20,11 +27,17 @@ Client = function(){
     var requestOptions = {
       url: configuration.urlServer,
       form: {action:'request',
-	     assignedProject : project != null
+	     assignedProject : project != null, dateTest: new Date()
       }      
     };
     
+    var comunicationTimeIni=new Date();
     request.post(requestOptions,function(error, response, body){
+      var comunicationTimeEnd=new Date();
+      comunicationTimeRequest+=comunicationTimeEnd-comunicationTimeIni;
+      
+      workTimeIni=new Date();
+      
       if(error){
 	console.log("ERROR! "+error);	
       }else{
@@ -48,8 +61,15 @@ Client = function(){
 	      deliverJob();
 	    }
 	    else{
+	      sleepTime+=project.sleepTime;
 	      setTimeout(requestJob,project.sleepTime);
 	    }
+	  }
+	  else{
+	    console.log("workTime: ",workTime/1000);
+	    console.log("waiting for a job: ",comunicationTimeRequest/1000);
+	    console.log("waiting for deliver a job: ",comunicationTimeDeliver/1000);
+	    console.log("sleepTime: ",sleepTime/1000);
 	  }
 	}
       }
@@ -126,12 +146,20 @@ Client = function(){
 	     estimatedTime : estimatedTime,
 	     realTime : realTime,
 	     fitness : JSON.stringify(fitness),
-	     oldIds : JSON.stringify(oldIds)
+	     oldIds : JSON.stringify(oldIds),
+	     dateTest: new Date().getTime()
       }      
     };
     
+    workTimeEnd=new Date();
+    workTime+=workTimeEnd-workTimeIni;
+    
+    var comunicationTimeIni=new Date();
     request.post(requestOptions, function(error, response, body){
-	  objThis.requestJob();
+      var comunicationTimeEnd=new Date();
+      comunicationTimeDeliver+=comunicationTimeEnd-comunicationTimeIni;
+      
+      objThis.requestJob();
     });
   };
 }
