@@ -26,8 +26,9 @@ Client = function(){
   this.requestJob = function(){
     var requestOptions = {
       url: configuration.urlServer,
-      form: {action:'request',
-	     assignedProject : project != null, dateTest: new Date()
+      form: {
+        action:'request',
+        assignedProject : project != null
       }      
     };
     
@@ -35,46 +36,46 @@ Client = function(){
     request.post(requestOptions,function(error, response, body){
       var comunicationTimeEnd=new Date();
       comunicationTimeRequest+=comunicationTimeEnd-comunicationTimeIni;
-      
       workTimeIni=new Date();
       
       if(error){
-	console.log("ERROR! "+error);	
+	       console.log("ERROR! "+error);	
       }else{
-	if (!error && response.statusCode == 200) {
-	  
-	  var objResponse = JSON.parse(body);
-	  
-	  if(typeof objResponse.finalized === 'undefined'){
-	    if(project === null){
-	      project = objResponse.assignedProject;
-	      eval('project.fitnessFunction = '+project.fitnessFunctionString);
-	      eval('project.crossoverFunction = '+project.crossoverFunctionString);
-	      eval('project.mutationFunction = '+project.mutationFunctionString);
-	    }
-	    if(typeof objResponse.sleep === 'undefined'){
-	      estimatedTime = objResponse.estimatedTime;
-	      population = objResponse.subPopulation;
-	      generation = objResponse.generation + 1;
-	      oldIds = objResponse.oldIds;
-	      processJob();
-	      deliverJob();
-	    }
-	    else{
-	      sleepTime+=project.sleepTime;
-	      setTimeout(requestJob,project.sleepTime);
-	    }
-	  }
-	  else{
-	    console.log("workTime: ",workTime/1000);
-	    console.log("waiting for a job: ",comunicationTimeRequest/1000);
-	    console.log("waiting for deliver a job: ",comunicationTimeDeliver/1000);
-	    console.log("sleepTime: ",sleepTime/1000);
-	  }
-	}
+          var objResponse = JSON.parse(body);
+
+          if(typeof objResponse.finalized === 'undefined'){
+            if(project === null){
+              project = objResponse.assignedProject;
+              eval('project.fitnessFunction = '+project.fitnessFunctionString);
+              eval('project.crossoverFunction = '+project.crossoverFunctionString);
+              eval('project.mutationFunction = '+project.mutationFunctionString);
+            }
+            if(typeof objResponse.sleep === 'undefined'){
+              estimatedTime = objResponse.estimatedTime;
+              population = objResponse.subPopulation;
+              generation = objResponse.generation + 1;
+              oldIds = objResponse.oldIds;
+              processJob();
+              deliverJob();
+            }
+            else{
+              sleepTime+=project.sleepTime;
+              setTimeout(requestJob,project.sleepTime);
+            }
+          }
+          else{
+            printReport();
+          }
       }
     });    
   };
+
+  function printReport(){
+    console.log("workTime: ",workTime/1000);
+    console.log("waiting for a job: ",comunicationTimeRequest/1000);
+    console.log("waiting for deliver a job: ",comunicationTimeDeliver/1000);
+    console.log("sleepTime: ",sleepTime/1000);
+  }
   
   function processJob(){
     realTime=new Date();
@@ -103,10 +104,10 @@ Client = function(){
       var idx2=i+1;
       
       if(calculateFitness(idx1) > calculateFitness(idx2)){
-	selection.push(population[idx1]);
+        selection.push(population[idx1]);
       }
       else{
-	selection.push(population[idx2])
+        selection.push(population[idx2])
       }
     }
     return selection;
@@ -140,14 +141,14 @@ Client = function(){
         
     var requestOptions = {
       url: configuration.urlServer,
-      form: {action : 'deliver',
-	     generation : generation,
-	     newChromosomes : JSON.stringify(population),
-	     estimatedTime : estimatedTime,
-	     realTime : realTime,
-	     fitness : JSON.stringify(fitness),
-	     oldIds : JSON.stringify(oldIds),
-	     dateTest: new Date().getTime()
+      form: {
+        action : 'deliver',
+        generation : generation,
+        newChromosomes : JSON.stringify(population),
+        estimatedTime : estimatedTime,
+        realTime : realTime,
+        fitness : JSON.stringify(fitness),
+        oldIds : JSON.stringify(oldIds)
       }      
     };
     
@@ -165,4 +166,3 @@ Client = function(){
 }
 
 module.exports=Client;
-
