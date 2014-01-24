@@ -1,6 +1,6 @@
 {
   "name": "AGMP_cliente",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Cliente de algoritmos genéticos distribuido",
   "main": "app.js",
   "dependencies": {

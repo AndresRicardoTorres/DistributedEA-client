@@ -4,4 +4,4 @@ var config2 = {
 var config1 = {
   urlServer: 'http://eva04.local:8000'
 }
-module.exports = config1;
+module.exports = config2;
