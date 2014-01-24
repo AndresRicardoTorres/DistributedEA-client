@@ -102,6 +102,10 @@ Client = function(){
     for(var i=0; i<populationSize; i+=2){
       var idx1=i;
       var idx2=i+1;
+
+			if (idx2 == populationSize){
+				idx2=0;
+			}
       
       if(calculateFitness(idx1) > calculateFitness(idx2)){
         selection.push(population[idx1]);
