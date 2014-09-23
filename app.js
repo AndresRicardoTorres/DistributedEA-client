@@ -1,4 +1,4 @@
-var Client = require('./Client.js');
+var Client = require('./lib/client.js');
 
 var aClient = new Client();
 
