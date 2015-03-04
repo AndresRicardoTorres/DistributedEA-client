@@ -1,0 +1,23 @@
+#!/usr/bin/env coffee
+
+# Start a genetic algorithm client
+
+# Include third libraries
+commander = require 'commander'
+# Import Client class
+Client = require './lib/client.js'
+
+
+# Command line options
+commander.version('1.0.1')
+.option '-p, --port <n>'   , 'Http port for communication with server', parseInt
+.option '-s, --server <IP>', 'Server Address'
+.parse process.argv
+
+port   = commander.port or 8000
+server = commander.server or 'localhost'
+
+# Initialize
+aClient = new Client server, port
+# start job
+aClient.requestJob()
